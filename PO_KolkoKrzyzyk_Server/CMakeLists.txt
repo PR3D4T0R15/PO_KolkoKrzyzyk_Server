@@ -14,14 +14,24 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ## Qt PACKAGES ##
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Network)
 
 ## Qt project setup ##
 qt_standard_project_setup()
 
 ## Qt ADD EXE ##
 qt_add_executable("${PROJECT_NAME}"
-    "src/main.cpp"
+    
     "include/main.h"
+    "src/main.cpp"
+
+    "include/ServerSettings.h"
+    "src/ServerSettings.cpp"
+
+    "include/TcpServer.h"
+    "src/TcpServer.cpp"
+    
 )
 
 target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Core)
+target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Network)
