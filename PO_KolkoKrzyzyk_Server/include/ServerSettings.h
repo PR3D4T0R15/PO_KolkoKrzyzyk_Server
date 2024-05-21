@@ -15,6 +15,7 @@ public:
 	~ServerSettings();
 
 	QString getDbHost();
+	QString getDbPort();
 	QString getDbUser();
 	QString getDbPass();
 	QString getDb();

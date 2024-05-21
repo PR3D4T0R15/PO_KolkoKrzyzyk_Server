@@ -27,6 +27,11 @@ QString ServerSettings::getDbHost()
 	return _settings->value("Database/host").toString();
 }
 
+QString ServerSettings::getDbPort()
+{
+	return _settings->value("Database/port").toString();
+}
+
 QString ServerSettings::getDbUser()
 {
 	return _settings->value("Database/user").toString();
