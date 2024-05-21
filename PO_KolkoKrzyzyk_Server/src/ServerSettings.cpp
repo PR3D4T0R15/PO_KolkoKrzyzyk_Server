@@ -13,6 +13,7 @@ ServerSettings::ServerSettings(QObject *parent): QObject(parent)
 	else
 	{
 		qCritical() << "Settings file " << filePath << " not found";
+		exit(-1);
 	}
 }
 
