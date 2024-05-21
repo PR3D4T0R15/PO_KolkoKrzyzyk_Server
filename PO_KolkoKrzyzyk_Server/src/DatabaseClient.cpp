@@ -5,7 +5,8 @@ DatabaseClient::DatabaseClient(QObject *parent): QObject(parent)
 	try
 	{
 		_inst = new mongocxx::instance();
-		_client = new mongocxx::client(generateUrl());
+		_client = new mongocxx::client(getUrl());
+		_db = new mongocxx::database((*_client)[getDbName().toStdString()]);
 	}
 	catch (const std::exception& e)
 	{
@@ -36,7 +37,26 @@ void DatabaseClient::testConn()
 	}
 }
 
-mongocxx::uri DatabaseClient::generateUrl()
+void DatabaseClient::getData(const QJsonDocument& query)
+{
+	auto bsonFilter = QJsonDocumentToBson(query);
+	try
+	{
+		auto collection = (*_db)["col1"];
+		auto cursor = collection.find(bsonFilter.view());
+
+		for (auto&& doc : cursor) {
+			std::cout << bsoncxx::to_json(doc) << std::endl;
+		}
+		qDebug() << "test";
+	}
+	catch (const std::exception& e)
+	{
+		qCritical() << "Exception: " << e.what();
+	}
+}
+
+mongocxx::uri DatabaseClient::getUrl()
 {
 	ServerSettings settings;
 	QString url = "mongodb://%1:%2@%3:%4/";
@@ -51,4 +71,22 @@ mongocxx::uri DatabaseClient::generateUrl()
 	settings.deleteLater();
 
 	return mongocxx::uri(url.toStdString());
+}
+
+QString DatabaseClient::getDbName()
+{
+
+	ServerSettings settings;
+	QString dbName = settings.getDb();
+	settings.deleteLater();
+
+	return dbName;
+}
+
+bsoncxx::document::value DatabaseClient::QJsonDocumentToBson(const QJsonDocument& jsonDoc)
+{
+	QByteArray byteArray = jsonDoc.toJson(QJsonDocument::Compact);
+	bsoncxx::document::value bsonDoc = bsoncxx::from_json(byteArray.toStdString());
+
+	return bsonDoc;
 }
