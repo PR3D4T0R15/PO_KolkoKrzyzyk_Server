@@ -22,17 +22,17 @@ ServerSettings::~ServerSettings()
 }
 
 
-QString ServerSettings::getHost()
+QString ServerSettings::getDbHost()
 {
 	return _settings->value("Database/host").toString();
 }
 
-QString ServerSettings::getUser()
+QString ServerSettings::getDbUser()
 {
 	return _settings->value("Database/user").toString();
 }
 
-QString ServerSettings::getPass()
+QString ServerSettings::getDbPass()
 {
 	return _settings->value("Database/password").toString();
 }

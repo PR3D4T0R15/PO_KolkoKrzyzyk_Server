@@ -16,6 +16,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Network)
 
+## other PACKAGES ##
+find_package(bsoncxx CONFIG REQUIRED)
+find_package(mongocxx CONFIG REQUIRED)
+
 ## Qt project setup ##
 qt_standard_project_setup()
 
@@ -28,6 +32,9 @@ qt_add_executable("${PROJECT_NAME}"
     "include/ServerSettings.h"
     "src/ServerSettings.cpp"
 
+    "include/DatabaseClient.h"
+    "src/DatabaseClient.cpp"
+
     "include/TcpServer.h"
     "src/TcpServer.cpp"
     
@@ -35,3 +42,6 @@ qt_add_executable("${PROJECT_NAME}"
 
 target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Core)
 target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Network)
+
+target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::bsoncxx_shared)
+target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::mongocxx_shared)

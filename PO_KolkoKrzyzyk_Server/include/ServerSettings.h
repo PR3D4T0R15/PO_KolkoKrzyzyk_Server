@@ -14,9 +14,9 @@ public:
 	ServerSettings(QObject *parent = nullptr);
 	~ServerSettings();
 
-	QString getHost();
-	QString getUser();
-	QString getPass();
+	QString getDbHost();
+	QString getDbUser();
+	QString getDbPass();
 	QString getDb();
 
 private:

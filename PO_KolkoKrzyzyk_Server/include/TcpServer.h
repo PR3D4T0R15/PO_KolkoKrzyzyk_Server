@@ -4,6 +4,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QSet>
+#include <QMap>
 #include <QByteArray>
 #include <QString>
 
@@ -18,21 +19,21 @@ public:
 
 	void startServer(const QHostAddress address = QHostAddress::AnyIPv4, quint16 port = 2390) const;
 
-private:
 	
 
 public slots:
 
 
 private slots:
-	void newConnection();
-	void appendToSocketList(QTcpSocket* socket);
+	void clientConnected();
+	void clientDisconnected();
 
-	void deleteSocket();
-
-
+	void receiveData();
+	void sendDataAll();
+	void sendData(QString user);
 
 signals:
+
 
 
 private:
