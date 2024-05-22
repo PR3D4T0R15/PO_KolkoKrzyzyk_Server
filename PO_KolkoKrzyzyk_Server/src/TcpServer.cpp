@@ -4,6 +4,7 @@
 TcpServer::TcpServer(QObject* parent): QObject(parent)
 {
 	_tcp_server = new QTcpServer(this);
+	_clients_count = 0;
 }
 
 TcpServer::~TcpServer()
@@ -26,7 +27,7 @@ void TcpServer::startServer(const QHostAddress address, const quint16 port) cons
 
 	if (serverStatus)
 	{
-		qDebug() << "Server started. IP: " << _tcp_server->serverAddress().toString() << " PORT: " << _tcp_server->serverPort();
+		qDebug() << "Server started. IP:" << _tcp_server->serverAddress().toString() << " PORT:" << _tcp_server->serverPort();
 		connect(_tcp_server, &QTcpServer::newConnection, this, &TcpServer::clientConnected);
 	}
 	else
@@ -36,9 +37,36 @@ void TcpServer::startServer(const QHostAddress address, const quint16 port) cons
 	}
 }
 
+void TcpServer::sendDataToClient(QString connId, QByteArray data)
+{
+	QTcpSocket* socket = findSocket(connId);
+	qint64 result;
+
+	if (socket != nullptr)
+	{
+		result = socket->write(data);
+	}
+	else
+	{
+		qDebug() << "ERROR sending message. No client socket";
+	}
+
+	if (result == -1)
+	{
+		qDebug() << "ERROR writing message to client";
+	}
+	else
+	{
+		qDebug() << "Written " << result << " to client";
+	}
+}
+
 void TcpServer::clientConnected()
 {
 	QTcpSocket* clientSocket = _tcp_server->nextPendingConnection();
+
+	QString connId = genId();
+	clientSocket->setProperty("connId", connId);
 
 	connect(clientSocket, &QAbstractSocket::connected, this, &TcpServer::clientConnected);
 	connect(clientSocket, &QAbstractSocket::disconnected, this, &TcpServer::clientDisconnected);
@@ -48,8 +76,7 @@ void TcpServer::clientConnected()
 
 	_clients_list.insert(clientSocket);
 	_clients_count++;
-	qDebug() << "client connected";
-	qDebug() << "Total users: " << _clients_count;
+	qDebug() << "client connected: " << clientSocket->peerAddress().toString() << "Total users: " << _clients_count;
 }
 
 void TcpServer::clientDisconnected()
@@ -58,7 +85,8 @@ void TcpServer::clientDisconnected()
 
 	_clients_list.remove(sender);
 	_clients_count--;
-	qDebug() << "client disconnected";
+	qDebug() << "client disconnected" << sender->peerAddress().toString() << "Total users: " << _clients_count;
+	sender->deleteLater();
 }
 
 void TcpServer::receiveData()
@@ -66,14 +94,30 @@ void TcpServer::receiveData()
 	QTcpSocket* sender = dynamic_cast<QTcpSocket*>(QObject::sender());
 
 	QByteArray data = sender->readAll();
+	QString connId = sender->property("connId").toString();
 
-	qDebug() << data.toStdString();
+	qDebug() << "Packet from: " << sender->peerAddress().toString();
+
+	emit newDataFromClient(connId, data);
 }
 
-void TcpServer::sendDataAll()
+QString TcpServer::genId()
 {
+	QUuid namespaceUid = QUuid::createUuid();
+	QString name = "TcpServerClient";
+	QUuid uid = QUuid::createUuidV5(namespaceUid, name);
+
+	return uid.toString();
 }
 
-void TcpServer::sendData(QString user)
+QTcpSocket* TcpServer::findSocket(QString connId)
 {
+	for (QTcpSocket* socket : _clients_list) {
+		if (socket->property("connId") == connId)
+		{
+			return socket;
+		}
+	}
+
+	return nullptr;
 }

@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QByteArray>
 #include <QString>
+#include <QUuid>
 
 
 class TcpServer : public QObject
@@ -22,19 +23,22 @@ public:
 	
 
 public slots:
-
+	void sendDataToClient(QString connId, QByteArray data);
 
 private slots:
 	void clientConnected();
 	void clientDisconnected();
 
 	void receiveData();
-	void sendDataAll();
-	void sendData(QString user);
+
+	
 
 signals:
+	void newDataFromClient(QString connId, QByteArray data);
 
-
+private:
+	QString genId();
+	QTcpSocket* findSocket(QString connId);
 
 private:
 	QTcpServer* _tcp_server;
