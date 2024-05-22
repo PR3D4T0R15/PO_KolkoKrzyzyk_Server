@@ -24,14 +24,16 @@ public:
 	~DatabaseClient();
 
 	void testConn();
-	void getData(const QJsonDocument& query);
-	void instertData();
-	void updateData();
+
+	QJsonDocument getSingleData(const QString& collName,const QJsonDocument& query);
+	bool instertSingleData(const QString& collName, const QJsonDocument& data);
+	bool updateSingleData(const QString& collName, const QJsonDocument& query, const QJsonDocument& data);
 
 private:
 	mongocxx::uri getUrl();
 	QString getDbName();
-	bsoncxx::document::value QJsonDocumentToBson(const QJsonDocument& jsonDoc);
+	bsoncxx::document::value qJsonDocumentToBson(const QJsonDocument& jsonDoc);
+	QJsonDocument bsonToQJsonDocument(const bsoncxx::document::view& view);
 
 
 private:

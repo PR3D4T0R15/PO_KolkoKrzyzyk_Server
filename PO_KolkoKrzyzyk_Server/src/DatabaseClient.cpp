@@ -13,13 +13,15 @@ DatabaseClient::DatabaseClient(QObject *parent): QObject(parent)
 		qCritical() << "Exception: " << e.what();
 		exit(-1);
 	}
-	
 }
 
 DatabaseClient::~DatabaseClient()
 {
+	delete _db;
+	delete _client;
 	delete _inst;
 }
+
 
 void DatabaseClient::testConn()
 {
@@ -37,24 +39,45 @@ void DatabaseClient::testConn()
 	}
 }
 
-void DatabaseClient::getData(const QJsonDocument& query)
+QJsonDocument DatabaseClient::getSingleData(const QString& collName, const QJsonDocument& query)
 {
-	auto bsonFilter = QJsonDocumentToBson(query);
-	try
-	{
-		auto collection = (*_db)["col1"];
-		auto cursor = collection.find(bsonFilter.view());
+	auto bsonFilter = qJsonDocumentToBson(query);
 
-		for (auto&& doc : cursor) {
-			std::cout << bsoncxx::to_json(doc) << std::endl;
-		}
-		qDebug() << "test";
-	}
-	catch (const std::exception& e)
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.find_one(bsonFilter.view());
+	QJsonDocument jsonDoc;
+
+	if (result)
 	{
-		qCritical() << "Exception: " << e.what();
+		jsonDoc = bsonToQJsonDocument(result->view());
+	}
+	return jsonDoc;
+}
+
+bool DatabaseClient::instertSingleData(const QString& collName, const QJsonDocument& data)
+{
+	auto collection = (*_db)[collName.toStdString()];
+	auto bsonData = qJsonDocumentToBson(data);
+
+	auto result = collection.insert_one(bsonData.view());
+
+	if (result)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
+
+bool DatabaseClient::updateSingleData(const QString& collName, const QJsonDocument& query, const QJsonDocument& data)
+{
+	auto collection = (*_db)[collName.toStdString()];
+	auto bsonQuery = qJsonDocumentToBson(query);
+	auto bsonData = qJsonDocumentToBson(data);
+}
+
 
 mongocxx::uri DatabaseClient::getUrl()
 {
@@ -83,10 +106,21 @@ QString DatabaseClient::getDbName()
 	return dbName;
 }
 
-bsoncxx::document::value DatabaseClient::QJsonDocumentToBson(const QJsonDocument& jsonDoc)
+bsoncxx::document::value DatabaseClient::qJsonDocumentToBson(const QJsonDocument& jsonDoc)
 {
 	QByteArray byteArray = jsonDoc.toJson(QJsonDocument::Compact);
 	bsoncxx::document::value bsonDoc = bsoncxx::from_json(byteArray.toStdString());
 
 	return bsonDoc;
+}
+
+QJsonDocument DatabaseClient::bsonToQJsonDocument(const bsoncxx::document::view& view)
+{
+	auto jsonString = bsoncxx::to_json(view);
+
+	QByteArray jsonByte;
+	jsonByte.append(jsonString);
+	QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonByte);
+
+	return jsonDoc;
 }
