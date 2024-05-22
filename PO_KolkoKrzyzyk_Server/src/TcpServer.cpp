@@ -37,7 +37,7 @@ void TcpServer::startServer(const QHostAddress address, const quint16 port) cons
 	}
 }
 
-void TcpServer::sendDataToClient(QString connId, QByteArray data)
+void TcpServer::sendDataToClient(const QString& connId, const QByteArray& data)
 {
 	QTcpSocket* socket = findSocket(connId);
 	qint64 result;
@@ -110,7 +110,7 @@ QString TcpServer::genId()
 	return uid.toString();
 }
 
-QTcpSocket* TcpServer::findSocket(QString connId)
+QTcpSocket* TcpServer::findSocket(const QString& connId)
 {
 	for (QTcpSocket* socket : _clients_list) {
 		if (socket->property("connId") == connId)

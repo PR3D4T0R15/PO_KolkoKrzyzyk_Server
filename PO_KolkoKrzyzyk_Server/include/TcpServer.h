@@ -20,10 +20,9 @@ public:
 
 	void startServer(const QHostAddress address = QHostAddress::AnyIPv4, quint16 port = 2390) const;
 
-	
 
 public slots:
-	void sendDataToClient(QString connId, QByteArray data);
+	void sendDataToClient(const QString& connId, const QByteArray& data);
 
 private slots:
 	void clientConnected();
@@ -31,14 +30,12 @@ private slots:
 
 	void receiveData();
 
-	
-
 signals:
-	void newDataFromClient(QString connId, QByteArray data);
+	void newDataFromClient(const QString& connId, const QByteArray& data);
 
 private:
 	QString genId();
-	QTcpSocket* findSocket(QString connId);
+	QTcpSocket* findSocket(const QString& connId);
 
 private:
 	QTcpServer* _tcp_server;
