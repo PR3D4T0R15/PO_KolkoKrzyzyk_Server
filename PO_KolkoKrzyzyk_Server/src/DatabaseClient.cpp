@@ -89,6 +89,23 @@ bool DatabaseClient::updateSingleData(const QString& collName, const QJsonDocume
 	}
 }
 
+bool DatabaseClient::deleteSingleData(const QString& collName, const QJsonDocument& filter)
+{
+	auto bsonFilter = qJsonDocumentToBson(filter);
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.delete_one(bsonFilter.view());
+
+	if (result)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 
 mongocxx::uri DatabaseClient::getUrl()
 {
