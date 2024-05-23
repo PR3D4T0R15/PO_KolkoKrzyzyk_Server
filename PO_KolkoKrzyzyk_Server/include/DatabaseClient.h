@@ -25,9 +25,9 @@ public:
 
 	void testConn();
 
-	QJsonDocument getSingleData(const QString& collName,const QJsonDocument& query);
+	QJsonDocument getSingleData(const QString& collName,const QJsonDocument& filter);
 	bool instertSingleData(const QString& collName, const QJsonDocument& data);
-	bool updateSingleData(const QString& collName, const QJsonDocument& query, const QJsonDocument& data);
+	bool updateSingleData(const QString& collName, const QJsonDocument& filter, const QJsonDocument& data);
 
 private:
 	mongocxx::uri getUrl();

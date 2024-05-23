@@ -39,9 +39,9 @@ void DatabaseClient::testConn()
 	}
 }
 
-QJsonDocument DatabaseClient::getSingleData(const QString& collName, const QJsonDocument& query)
+QJsonDocument DatabaseClient::getSingleData(const QString& collName, const QJsonDocument& filter)
 {
-	auto bsonFilter = qJsonDocumentToBson(query);
+	auto bsonFilter = qJsonDocumentToBson(filter);
 
 	auto collection = (*_db)[collName.toStdString()];
 	auto result = collection.find_one(bsonFilter.view());
@@ -71,11 +71,22 @@ bool DatabaseClient::instertSingleData(const QString& collName, const QJsonDocum
 	}
 }
 
-bool DatabaseClient::updateSingleData(const QString& collName, const QJsonDocument& query, const QJsonDocument& data)
+bool DatabaseClient::updateSingleData(const QString& collName, const QJsonDocument& filter, const QJsonDocument& data)
 {
 	auto collection = (*_db)[collName.toStdString()];
-	auto bsonQuery = qJsonDocumentToBson(query);
+	auto bsonFilter = qJsonDocumentToBson(filter);
 	auto bsonData = qJsonDocumentToBson(data);
+
+	auto result = collection.update_one(bsonFilter.view(), bsonData.view());
+
+	if (result)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
