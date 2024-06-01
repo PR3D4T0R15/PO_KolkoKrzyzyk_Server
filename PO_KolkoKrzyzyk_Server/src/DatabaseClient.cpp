@@ -115,6 +115,20 @@ bool DatabaseClient::update_one(const QString& collName, const QJsonObject& filt
 	return false;
 }
 
+bool DatabaseClient::delete_one(const QString& collName, const QJsonObject& filter)
+{
+	auto bsonFilter = qJsonObjToBson(filter);
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.delete_one(bsonFilter.view());
+
+	if (result->deleted_count() != 0)
+	{
+		return true;
+	}
+	return false;
+}
+
 mongocxx::uri DatabaseClient::getUrl()
 {
 	ServerSettings settings;

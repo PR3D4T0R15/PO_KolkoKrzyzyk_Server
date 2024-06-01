@@ -30,7 +30,7 @@ public:
 	QJsonDocument find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort);
 	bool insert_one(const QString& collName, const QJsonObject& data);
 	bool update_one(const QString& collName, const QJsonObject& filter, const QJsonObject& data);
-
+	bool delete_one(const QString& collName, const QJsonObject& filter);
 
 private:
 	static mongocxx::uri getUrl();
