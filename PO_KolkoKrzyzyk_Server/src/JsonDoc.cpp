@@ -1,6 +1,6 @@
 #include "include/JsonDoc.h"
 
-//JsonDoc
+//JsonDoc class
 QString jsonDoc::JsonDoc::getAction(const QJsonDocument& jsonDoc)
 {
 	QString action;
@@ -12,6 +12,19 @@ QString jsonDoc::JsonDoc::getAction(const QJsonDocument& jsonDoc)
 	}
 
 	return action;
+}
+
+QJsonObject jsonDoc::JsonDoc::getData(const QJsonDocument& jsonDoc)
+{
+	QJsonObject array;
+
+	if (!jsonDoc.isNull())
+	{
+		QJsonObject jsonObj = jsonDoc.object();
+		array = jsonObj["data"].toObject();
+	}
+
+	return array;
 }
 
 QByteArray jsonDoc::JsonDoc::toBytes(const QJsonDocument& jsonDoc)
@@ -41,62 +54,46 @@ QJsonObject jsonDoc::JsonDoc::genId()
 	return idObject; //add to "_id"
 }
 
-
-
-//SessionDoc
-jsonDoc::SessionDoc::SessionDoc()
+void jsonDoc::JsonDoc::setJson(const QJsonDocument& jsonDoc)
 {
-	_jsonObject["_id"] = jsonDoc::JsonDoc::genId();
-	_jsonObject["starting"] = "";
-	_jsonObject["round"] = 1;
-	_jsonObject["EndTime"] = "";
-
-	QJsonArray players;
-
-	_jsonObject["players"] = players;
-
-	QJsonArray gameField;
-	gameField.append(QJsonArray({ "n", "n", "n" }));
-	gameField.append(QJsonArray({ "n", "n", "n" }));
-	gameField.append(QJsonArray({ "n", "n", "n" }));
-
-	_jsonObject["gameField"] = gameField;
-
+	_rootObj = jsonDoc.object();
 }
 
-jsonDoc::SessionDoc::~SessionDoc()
+void jsonDoc::JsonDoc::setJson(const QJsonObject& jsonObj)
 {
+	_rootObj = jsonObj;
 }
 
-void jsonDoc::SessionDoc::setPlayer(const QString& playerId, const QString& connId, const QString& figure)
+QJsonDocument jsonDoc::JsonDoc::getJsonDoc()
 {
-	QJsonObject player;
-	player["player"] = playerId;
-	player["connId"] = connId;
-	player["figure"] = figure;
-
-	QJsonArray players = _jsonObject["players"].toArray();
-	players.append(player);
-
-	_jsonObject["players"] = players;
-
-}
-
-QJsonArray jsonDoc::SessionDoc::getPlayer()
-{
-	return _jsonObject["players"].toArray();
-}
-
-QJsonDocument jsonDoc::SessionDoc::dumpSession()
-{
-	QJsonDocument jsonDoc;
-
-	jsonDoc.setObject(_jsonObject);
+	QJsonDocument jsonDoc(_rootObj);
 
 	return jsonDoc;
 }
 
-void jsonDoc::SessionDoc::loadSession(const QJsonDocument& jsonDoc)
+QJsonObject jsonDoc::JsonDoc::getJsonObj()
 {
-	_jsonObject = jsonDoc.object();
+	return _rootObj;
+}
+
+
+
+//Conn class
+jsonDoc::Conn::Conn()
+{
+	_rootObj["action"] = "connection";
+
+	QJsonArray dataArr;
+	_rootObj["data"] = dataArr;
+}
+
+void jsonDoc::Conn::setConnId(const QString& connId)
+{
+	QJsonArray dataArr = _rootObj["data"].toArray();
+
+	QJsonObject dataArrObj;
+	dataArrObj["connId"] = connId;
+	dataArr.append(dataArrObj);
+
+	_rootObj["data"] = dataArr;
 }

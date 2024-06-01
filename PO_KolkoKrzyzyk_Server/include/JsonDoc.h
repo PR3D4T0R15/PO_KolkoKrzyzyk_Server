@@ -7,8 +7,9 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QUuid>
+#include <QRandomGenerator>
 #include <bsoncxx/oid.hpp>
+#include <QDateTime>
 
 namespace jsonDoc
 {
@@ -16,36 +17,28 @@ namespace jsonDoc
 	{
 	public:
 		static QString getAction(const QJsonDocument& jsonDoc);
+		static QJsonObject getData(const QJsonDocument& jsonDoc);
+
 		static QByteArray toBytes(const QJsonDocument& jsonDoc);
 		static QJsonDocument toJson(const QByteArray& jsonByte);
+
 		static QString hashData(const QString& data);
 		static QJsonObject genId();
-		
+
+		void setJson(const QJsonDocument& jsonDoc);
+		void setJson(const QJsonObject& jsonObj);
+
+		QJsonDocument getJsonDoc();
+		QJsonObject getJsonObj();
+
+	protected:
+		QJsonObject _rootObj;
 	};
 
-
-	class SessionDoc : JsonDoc
+	class Conn : JsonDoc
 	{
 	public:
-		SessionDoc();
-		~SessionDoc();
-
-		void setPlayer(const QString& playerId, const QString& connId, const QString& figure);
-		QJsonArray getPlayer();
-
-		QJsonDocument dumpSession();
-		void loadSession(const QJsonDocument& jsonDoc);
-
-	private:
-		QJsonObject _jsonObject;
-	};
-
-	class AccountDoc : JsonDoc
-	{
-	public:
-		AccountDoc();
-		~AccountDoc();
-
-		
+		Conn();
+		void setConnId(const QString& connId);
 	};
 }
