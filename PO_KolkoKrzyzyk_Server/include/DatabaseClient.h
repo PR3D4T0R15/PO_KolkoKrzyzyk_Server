@@ -27,6 +27,7 @@ public:
 	void testConn();
 
 	QJsonObject find_one(const QString& collName,const QJsonObject& filter, const QJsonObject& projection);
+	QJsonDocument find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort);
 
 private:
 	static mongocxx::uri getUrl();

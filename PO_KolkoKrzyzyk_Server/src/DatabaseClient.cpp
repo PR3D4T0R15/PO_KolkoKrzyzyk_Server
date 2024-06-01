@@ -42,8 +42,11 @@ QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject&
 	auto bsonFilter = qJsonObjToBson(filter);
 	auto bsonProjection = qJsonObjToBson(projection);
 
+	mongocxx::options::find opts;
+	opts.projection(bsonProjection.view());
+
 	auto collection = (*_db)[collName.toStdString()];
-	auto result = collection.find_one(bsonFilter.view(), mongocxx::options::find{}.projection(bsonProjection.view()));
+	auto result = collection.find_one(bsonFilter.view(), opts);
 
 	QJsonObject responseJsonObj;
 
@@ -52,6 +55,32 @@ QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject&
 		responseJsonObj = bsonToQJsonObj(result->view());
 	}
 	return responseJsonObj;
+}
+
+QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort)
+{
+	auto bsonFilter = qJsonObjToBson(filter);
+	auto bsonProjection = qJsonObjToBson(projection);
+	auto bsonSort = qJsonObjToBson(sort);
+
+	mongocxx::options::find opts;
+	opts.sort(bsonSort.view());
+	opts.projection(bsonProjection.view());
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.find(bsonFilter.view(), opts);
+
+	QJsonArray responseArr;
+	for (auto doc : result)
+	{
+		std::string line = bsoncxx::to_json(doc);
+		QJsonDocument lineDoc = QJsonDocument::fromJson(QByteArray::fromStdString(line));
+		responseArr.append(lineDoc.object());
+	}
+
+	QJsonDocument jsonDoc(responseArr);
+
+	return jsonDoc;
 }
 
 
