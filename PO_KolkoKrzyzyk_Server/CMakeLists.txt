@@ -35,6 +35,12 @@ qt_add_executable("${PROJECT_NAME}"
     "include/DatabaseClient.h"
     "src/DatabaseClient.cpp"
 
+    "include/JsonDoc.h"
+    "src/JsonDoc.cpp"
+
+    "include/GameManager.h"
+    "src/GameManager.cpp"
+
     "include/TcpServer.h"
     "src/TcpServer.cpp"
     

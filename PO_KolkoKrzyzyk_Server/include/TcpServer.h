@@ -7,7 +7,7 @@
 #include <QMap>
 #include <QByteArray>
 #include <QString>
-#include <QUuid>
+#include "include/JsonDoc.h"
 
 
 class TcpServer : public QObject

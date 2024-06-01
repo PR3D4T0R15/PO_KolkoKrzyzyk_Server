@@ -76,6 +76,37 @@ QJsonObject jsonDoc::JsonDoc::getJsonObj()
 	return _rootObj;
 }
 
+void jsonDoc::JsonDoc::setDataObject(const QString& objName, const QString& objValue)
+{
+	QJsonObject dataObj = _rootObj["data"].toObject();
+
+	dataObj[objName] = objValue;
+
+	_rootObj["data"] = dataObj;
+}
+
+void jsonDoc::JsonDoc::setDataObject(const QString& objName, const bool& objValue)
+{
+	QJsonObject dataObj = _rootObj["data"].toObject();
+
+	dataObj[objName] = objValue;
+
+	_rootObj["data"] = dataObj;
+}
+
+QString jsonDoc::JsonDoc::getDataObjectStr(const QString& objName)
+{
+	QJsonObject dataObj = _rootObj["data"].toObject();
+
+	return dataObj["connId"].toString();
+}
+
+bool jsonDoc::JsonDoc::getDataObjectBool(const QString& objName)
+{
+	QJsonObject dataObj = _rootObj["data"].toObject();
+
+	return dataObj["connId"].toBool();
+}
 
 
 //Conn class
@@ -83,17 +114,72 @@ jsonDoc::Conn::Conn()
 {
 	_rootObj["action"] = "connection";
 
-	QJsonArray dataArr;
-	_rootObj["data"] = dataArr;
+	QJsonObject dataObj;
+	_rootObj["data"] = dataObj;
 }
 
 void jsonDoc::Conn::setConnId(const QString& connId)
 {
-	QJsonArray dataArr = _rootObj["data"].toArray();
+	JsonDoc::setDataObject("connId", connId);
+}
 
-	QJsonObject dataArrObj;
-	dataArrObj["connId"] = connId;
-	dataArr.append(dataArrObj);
+QString jsonDoc::Conn::getConnId()
+{
+	return JsonDoc::getDataObjectStr("connId");
+}
 
-	_rootObj["data"] = dataArr;
+
+
+//Account class
+jsonDoc::Account::Account()
+{
+	_rootObj["action"] = "";
+
+	QJsonObject dataObj;
+	_rootObj["data"] = dataObj;
+}
+
+void jsonDoc::Account::setLogin()
+{
+	_rootObj["action"] = "login";
+}
+
+void jsonDoc::Account::setLogout()
+{
+	_rootObj["action"] = "logout";
+}
+
+void jsonDoc::Account::setNewaccount()
+{
+	_rootObj["action"] = "NewAccount";
+}
+
+void jsonDoc::Account::setUsername(const QString& username)
+{
+	JsonDoc::setDataObject("username", username);
+}
+
+QString jsonDoc::Account::getUsername()
+{
+	return JsonDoc::getDataObjectStr("username");
+}
+
+void jsonDoc::Account::setPassword(const QString& password)
+{
+	JsonDoc::setDataObject("password", password);
+}
+
+QString jsonDoc::Account::getPassword()
+{
+	return JsonDoc::getDataObjectStr("password");
+}
+
+void jsonDoc::Account::setResult(const bool& result)
+{
+	JsonDoc::setDataObject("result", result);
+}
+
+bool jsonDoc::Account::getResult()
+{
+	return JsonDoc::getDataObjectBool("result");
 }

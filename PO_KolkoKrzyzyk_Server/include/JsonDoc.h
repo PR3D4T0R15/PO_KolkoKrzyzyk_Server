@@ -32,13 +32,37 @@ namespace jsonDoc
 		QJsonObject getJsonObj();
 
 	protected:
+		void setDataObject(const QString& objName, const QString& objValue);
+		void setDataObject(const QString& objName, const bool& objValue);
+		QString getDataObjectStr(const QString& objName);
+		bool getDataObjectBool(const QString& objName);
+
+	protected:
 		QJsonObject _rootObj;
 	};
 
-	class Conn : JsonDoc
+	class Conn : public JsonDoc
 	{
 	public:
 		Conn();
 		void setConnId(const QString& connId);
+		QString getConnId();
+	};
+
+	class Account : public JsonDoc
+	{
+	public:
+		Account();
+		void setLogin();
+		void setLogout();
+		void setNewaccount();
+		void setUsername(const QString& username);
+		QString getUsername();
+
+		void setPassword(const QString& password);
+		QString getPassword();
+
+		void setResult(const bool& result);
+		bool getResult();
 	};
 }

@@ -55,10 +55,6 @@ void TcpServer::sendDataToClient(const QString& connId, const QByteArray& data)
 	{
 		qDebug() << "ERROR writing message to client";
 	}
-	else
-	{
-		qDebug() << "Written " << result << " to client";
-	}
 }
 
 void TcpServer::clientConnected()
@@ -72,7 +68,7 @@ void TcpServer::clientConnected()
 	connect(clientSocket, &QAbstractSocket::disconnected, this, &TcpServer::clientDisconnected);
 	connect(clientSocket, &QAbstractSocket::readyRead, this, &TcpServer::receiveData);
 
-	clientSocket->write("hello\n");
+	//clientSocket->write(jsonDoc::ConnDoc::newConnResponse(connId));
 
 	_clients_list.insert(clientSocket);
 	_clients_count++;
