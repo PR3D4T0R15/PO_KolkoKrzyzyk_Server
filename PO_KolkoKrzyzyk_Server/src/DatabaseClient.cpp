@@ -83,6 +83,37 @@ QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& f
 	return jsonDoc;
 }
 
+bool DatabaseClient::insert_one(const QString& collName, const QJsonObject& data)
+{
+	auto bsonData = qJsonObjToBson(data);
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.insert_one(bsonData.view());
+
+	if (result)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool DatabaseClient::update_one(const QString& collName, const QJsonObject& filter, const QJsonObject& data)
+{
+	QJsonObject dataObj;
+	dataObj["$set"] = data;
+
+	auto bsonData = qJsonObjToBson(dataObj);
+	auto bsonFilter = qJsonObjToBson(filter);
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.update_one(bsonFilter.view(), bsonData.view());
+
+	if (result->modified_count() != 0)
+	{
+		return true;
+	}
+	return false;
+}
 
 mongocxx::uri DatabaseClient::getUrl()
 {

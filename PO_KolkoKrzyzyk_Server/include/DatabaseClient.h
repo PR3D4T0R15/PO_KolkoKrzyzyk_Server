@@ -28,6 +28,9 @@ public:
 
 	QJsonObject find_one(const QString& collName,const QJsonObject& filter, const QJsonObject& projection);
 	QJsonDocument find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort);
+	bool insert_one(const QString& collName, const QJsonObject& data);
+	bool update_one(const QString& collName, const QJsonObject& filter, const QJsonObject& data);
+
 
 private:
 	static mongocxx::uri getUrl();
