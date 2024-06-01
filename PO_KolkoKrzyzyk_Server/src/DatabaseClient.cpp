@@ -4,7 +4,6 @@ DatabaseClient::DatabaseClient(QObject *parent): QObject(parent)
 {
 	try
 	{
-		_inst = new mongocxx::instance();
 		_client = new mongocxx::client(getUrl());
 		_db = new mongocxx::database((*_client)[getDbName().toStdString()]);
 	}
@@ -19,7 +18,6 @@ DatabaseClient::~DatabaseClient()
 {
 	delete _db;
 	delete _client;
-	delete _inst;
 }
 
 
@@ -39,71 +37,21 @@ void DatabaseClient::testConn()
 	}
 }
 
-QJsonDocument DatabaseClient::getSingleData(const QString& collName, const QJsonDocument& filter)
+QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject& filter, const QJsonObject& projection)
 {
-	auto bsonFilter = qJsonDocumentToBson(filter);
+	auto bsonFilter = qJsonObjToBson(filter);
+	auto bsonProjection = qJsonObjToBson(projection);
 
 	auto collection = (*_db)[collName.toStdString()];
-	auto result = collection.find_one(bsonFilter.view());
-	QJsonDocument jsonDoc;
+	auto result = collection.find_one(bsonFilter.view(), mongocxx::options::find{}.projection(bsonProjection.view()));
+
+	QJsonObject responseJsonObj;
 
 	if (result)
 	{
-		jsonDoc = bsonToQJsonDocument(result->view());
+		responseJsonObj = bsonToQJsonObj(result->view());
 	}
-	return jsonDoc;
-}
-
-bool DatabaseClient::instertSingleData(const QString& collName, const QJsonDocument& data)
-{
-	auto collection = (*_db)[collName.toStdString()];
-	auto bsonData = qJsonDocumentToBson(data);
-
-	auto result = collection.insert_one(bsonData.view());
-
-	if (result)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-bool DatabaseClient::updateSingleData(const QString& collName, const QJsonDocument& filter, const QJsonDocument& data)
-{
-	auto collection = (*_db)[collName.toStdString()];
-	auto bsonFilter = qJsonDocumentToBson(filter);
-	auto bsonData = qJsonDocumentToBson(data);
-
-	auto result = collection.update_one(bsonFilter.view(), bsonData.view());
-
-	if (result)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-bool DatabaseClient::deleteSingleData(const QString& collName, const QJsonDocument& filter)
-{
-	auto bsonFilter = qJsonDocumentToBson(filter);
-
-	auto collection = (*_db)[collName.toStdString()];
-	auto result = collection.delete_one(bsonFilter.view());
-
-	if (result)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return responseJsonObj;
 }
 
 
@@ -134,15 +82,16 @@ QString DatabaseClient::getDbName()
 	return dbName;
 }
 
-bsoncxx::document::value DatabaseClient::qJsonDocumentToBson(const QJsonDocument& jsonDoc)
+bsoncxx::document::value DatabaseClient::qJsonObjToBson(const QJsonObject& jsonObj)
 {
+	QJsonDocument jsonDoc(jsonObj);
 	QByteArray byteArray = jsonDoc.toJson(QJsonDocument::Compact);
 	bsoncxx::document::value bsonDoc = bsoncxx::from_json(byteArray.toStdString());
 
 	return bsonDoc;
 }
 
-QJsonDocument DatabaseClient::bsonToQJsonDocument(const bsoncxx::document::view& view)
+QJsonObject DatabaseClient::bsonToQJsonObj(const bsoncxx::document::view& view)
 {
 	auto jsonString = bsoncxx::to_json(view);
 
@@ -150,5 +99,5 @@ QJsonDocument DatabaseClient::bsonToQJsonDocument(const bsoncxx::document::view&
 	jsonByte.append(jsonString);
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonByte);
 
-	return jsonDoc;
+	return jsonDoc.object();
 }

@@ -8,10 +8,11 @@
 #include <QByteArray>
 
 #include "include/ServerSettings.h"
+#include "include/JsonDoc.h"
 
 #include <mongocxx/client.hpp>
 #include <mongocxx/uri.hpp>
-#include <mongocxx/instance.hpp>
+
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
@@ -25,20 +26,16 @@ public:
 
 	void testConn();
 
-	QJsonDocument getSingleData(const QString& collName,const QJsonDocument& filter);
-	bool instertSingleData(const QString& collName, const QJsonDocument& data);
-	bool updateSingleData(const QString& collName, const QJsonDocument& filter, const QJsonDocument& data);
-	bool deleteSingleData(const QString& collName, const QJsonDocument& filter);
+	QJsonObject find_one(const QString& collName,const QJsonObject& filter, const QJsonObject& projection);
 
 private:
-	mongocxx::uri getUrl();
-	QString getDbName();
-	bsoncxx::document::value qJsonDocumentToBson(const QJsonDocument& jsonDoc);
-	QJsonDocument bsonToQJsonDocument(const bsoncxx::document::view& view);
+	static mongocxx::uri getUrl();
+	static QString getDbName();
+	static bsoncxx::document::value qJsonObjToBson(const QJsonObject& jsonObj);
+	static QJsonObject bsonToQJsonObj(const bsoncxx::document::view& view);
 
 
 private:
-	mongocxx::instance* _inst;
 	mongocxx::client* _client;
 	mongocxx::database* _db;
 };
