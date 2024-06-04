@@ -37,6 +37,34 @@ void DatabaseClient::testConn()
 	}
 }
 
+QString DatabaseClient::getUserPassByNick(const QString& nick)
+{
+	QJsonObject query;
+	QJsonObject projection;
+	query["username"] = nick;
+	projection["_id"] = 0;
+	projection["username"] = 0;
+	projection["stats"] = 0;
+
+	QJsonObject userJsonObj = find_one("players", query, projection);
+
+	return userJsonObj["password"].toString();
+}
+
+QString DatabaseClient::getUserNameById(const QString& uuid)
+{
+	QJsonObject query;
+	QJsonObject projection;
+	query["_id"] = QJsonObject{ {"oid", uuid} };
+	projection["_id"] = 0;
+	projection["password"] = 0;
+	projection["stats"] = 0;
+
+	QJsonObject userJsonObj = find_one("players", query, projection);
+
+	return userJsonObj["username"].toString();
+}
+
 QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject& filter, const QJsonObject& projection)
 {
 	auto bsonFilter = qJsonObjToBson(filter);
@@ -46,7 +74,7 @@ QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject&
 	opts.projection(bsonProjection.view());
 
 	auto collection = (*_db)[collName.toStdString()];
-	auto result = collection.find_one(bsonFilter.view(), opts);
+	auto result= collection.find_one(bsonFilter.view(), opts);
 
 	QJsonObject responseJsonObj;
 

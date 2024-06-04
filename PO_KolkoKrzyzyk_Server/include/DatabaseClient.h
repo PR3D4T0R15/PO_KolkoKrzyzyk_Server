@@ -12,7 +12,7 @@
 
 #include <mongocxx/client.hpp>
 #include <mongocxx/uri.hpp>
-
+#include <mongocxx/instance.hpp>
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
@@ -26,6 +26,11 @@ public:
 
 	void testConn();
 
+	QString getUserPassByNick(const QString& nick);
+	QString getUserNameById(const QString& uuid);
+	
+
+protected:
 	QJsonObject find_one(const QString& collName,const QJsonObject& filter, const QJsonObject& projection);
 	QJsonDocument find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort);
 	bool insert_one(const QString& collName, const QJsonObject& data);
