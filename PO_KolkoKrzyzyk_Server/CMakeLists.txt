@@ -43,11 +43,13 @@ qt_add_executable("${PROJECT_NAME}"
 
     "include/TcpServer.h"
     "src/TcpServer.cpp"
-    
 )
 
 target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Core)
 target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Network)
 
-target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::bsoncxx_shared)
-target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::mongocxx_shared)
+#target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::bsoncxx_shared)
+#target_link_libraries("${PROJECT_NAME}" PRIVATE mongo::mongocxx_shared)
+
+target_link_libraries("${PROJECT_NAME}" PRIVATE $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>)
+target_link_libraries("${PROJECT_NAME}" PRIVATE $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>)
