@@ -53,3 +53,6 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE Qt6::Network)
 
 target_link_libraries("${PROJECT_NAME}" PRIVATE $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>)
 target_link_libraries("${PROJECT_NAME}" PRIVATE $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>)
+
+add_custom_target(copy_config ALL COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/cfg/config.ini" "${PROJECT_BINARY_DIR}/config.ini" COMMENT "Copying config file")
+add_dependencies("${PROJECT_NAME}" copy_config)
