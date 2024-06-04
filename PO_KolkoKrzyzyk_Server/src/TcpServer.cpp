@@ -21,8 +21,13 @@ TcpServer::~TcpServer()
 
 
 
-void TcpServer::startServer(const QHostAddress address, const quint16 port) const
+void TcpServer::startServer() const
 {
+	ServerSettings settings;
+
+	QHostAddress address(settings.getServerAddress());
+	quint16 port = settings.getServerPort().toInt();
+
 	bool serverStatus = _tcp_server->listen(address, port);
 
 	if (serverStatus)
@@ -68,7 +73,9 @@ void TcpServer::clientConnected()
 	connect(clientSocket, &QAbstractSocket::disconnected, this, &TcpServer::clientDisconnected);
 	connect(clientSocket, &QAbstractSocket::readyRead, this, &TcpServer::receiveData);
 
-	//clientSocket->write(jsonDoc::ConnDoc::newConnResponse(connId));
+	jsonDoc::Conn jsonConn;
+	jsonConn.setConnId(connId);
+	clientSocket->write(jsonConn.getJsonDoc().toJson());
 
 	_clients_list.insert(clientSocket);
 	_clients_count++;

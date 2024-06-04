@@ -8,6 +8,7 @@
 #include <QByteArray>
 #include <QString>
 #include "include/JsonDoc.h"
+#include "include/ServerSettings.h"
 
 
 class TcpServer : public QObject
@@ -18,7 +19,7 @@ public:
 	explicit TcpServer(QObject *parent = nullptr);
 	~TcpServer();
 
-	void startServer(const QHostAddress address = QHostAddress::AnyIPv4, quint16 port = 2390) const;
+	void startServer() const;
 
 public slots:
 	void sendDataToClient(const QString& connId, const QByteArray& data);
