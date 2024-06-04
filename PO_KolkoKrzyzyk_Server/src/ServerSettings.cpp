@@ -47,3 +47,13 @@ QString ServerSettings::getDb()
 {
 	return _settings->value("Database/database").toString();
 }
+
+QString ServerSettings::getServerAddress()
+{
+	return _settings->value("Server/host").toString();
+}
+
+QString ServerSettings::getServerPort()
+{
+	return _settings->value("Server/port").toString();
+}

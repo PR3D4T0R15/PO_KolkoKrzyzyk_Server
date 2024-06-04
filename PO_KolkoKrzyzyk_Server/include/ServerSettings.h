@@ -20,6 +20,9 @@ public:
 	QString getDbPass();
 	QString getDb();
 
+	QString getServerAddress();
+	QString getServerPort();
+
 private:
 	QSettings* _settings;
 };
