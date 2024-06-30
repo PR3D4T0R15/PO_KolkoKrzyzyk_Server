@@ -41,6 +41,9 @@ qt_add_executable("${PROJECT_NAME}"
     "include/GameManager.h"
     "src/GameManager.cpp"
 
+    "include/GameSessionManager.h"
+    "src/GameSessionManager.cpp"
+
     "include/TcpServer.h"
     "src/TcpServer.cpp"
 )

@@ -1,11 +1,10 @@
 #include <QCoreApplication>
 #include "include/TcpServer.h"
-#include "include/DatabaseClient.h"
 #include "include/GameManager.h"
-#include "include/JsonDoc.h"
+#include "include/DatabaseClient.h"
+#include "include/GameSessionManager.h"
 #include <mongocxx/instance.hpp>
-#include <QDebug>
-
+#include "QDebug"
 
 int main(int argc, char* argv[])
 {
@@ -13,25 +12,21 @@ int main(int argc, char* argv[])
 
 	mongocxx::instance instance{};
 
-	//TcpServer* server = new TcpServer();
-	//GameManager* gameManager = new GameManager();
+	//db test
+	DatabaseClient* dbClient = new DatabaseClient;
+	dbClient->testConn();
+	dbClient->deleteLater();
 
-	//QObject::connect(server, &TcpServer::newDataFromClient, gameManager, &GameManager::getRequest);
-	//QObject::connect(gameManager, &GameManager::sendResponse, server, &TcpServer::sendDataToClient);
+	TcpServer* server = new TcpServer(&app);
+	GameManager* gameManager = new GameManager(&app);
+	GameSessionManager* gameSessionManager = new GameSessionManager(&app);
 
-	//server->startServer();
+	QObject::connect(server, &TcpServer::newDataFromClient, gameManager, &GameManager::getRequest);
+	QObject::connect(gameManager, &GameManager::sendResponse, server, &TcpServer::sendDataToClient);
+	QObject::connect(gameManager, &GameManager::sendToSessionManager, gameSessionManager, &GameSessionManager::receiveData);
+	QObject::connect(gameSessionManager, &GameSessionManager::sendData, server, &TcpServer::sendDataToClient);
 
-	//test begin
-	jsonDoc::Conn test0;
-	test0.setConnId("sdfsdfmsv");
-
-	jsonDoc::Conn test;
-
-	test.setConnId("makapaka");
-
-	qDebug() << test.getJsonDoc();
-	//test end
-
+	server->startServer();
 
 	return app.exec();
 }

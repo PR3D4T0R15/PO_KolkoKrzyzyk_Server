@@ -50,6 +50,7 @@ void TcpServer::sendDataToClient(const QString& connId, const QByteArray& data)
 	if (socket != nullptr)
 	{
 		result = socket->write(data);
+		socket->waitForBytesWritten(10);
 	}
 	else
 	{
@@ -97,6 +98,7 @@ void TcpServer::receiveData()
 	QTcpSocket* sender = dynamic_cast<QTcpSocket*>(QObject::sender());
 
 	QByteArray data = sender->readAll();
+	sender->waitForBytesWritten(10);
 	QString connId = sender->property("connId").toString();
 
 	qDebug() << "Packet from: " << sender->peerAddress().toString();
@@ -109,8 +111,10 @@ QString TcpServer::genId()
 	QUuid namespaceUid = QUuid::createUuid();
 	QString name = "TcpServerClient";
 	QUuid uid = QUuid::createUuidV5(namespaceUid, name);
+	QString uuid = uid.toString();
+	uuid = uuid.remove("{").remove("}");
 
-	return uid.toString();
+	return uuid;
 }
 
 QTcpSocket* TcpServer::findSocket(const QString& connId)

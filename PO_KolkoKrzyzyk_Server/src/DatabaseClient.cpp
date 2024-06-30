@@ -40,13 +40,13 @@ void DatabaseClient::testConn()
 QString DatabaseClient::getUserPassByNick(const QString& nick)
 {
 	QJsonObject query;
-	QJsonObject projection;
+	QJsonObject projection; 
 	query["username"] = nick;
 	projection["_id"] = 0;
 	projection["username"] = 0;
 	projection["stats"] = 0;
 
-	QJsonObject userJsonObj = find_one("players", query, projection);
+	QJsonObject userJsonObj = findOne("players", query, projection);
 
 	return userJsonObj["password"].toString();
 }
@@ -60,12 +60,113 @@ QString DatabaseClient::getUserNameById(const QString& uuid)
 	projection["password"] = 0;
 	projection["stats"] = 0;
 
-	QJsonObject userJsonObj = find_one("players", query, projection);
+	QJsonObject userJsonObj = findOneById("players", uuid, projection);
 
 	return userJsonObj["username"].toString();
 }
 
-QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject& filter, const QJsonObject& projection)
+bool DatabaseClient::checkIfUserExist(const QString& username)
+{
+	QJsonObject filter;
+	filter["username"] = username;
+	QJsonObject projection;
+	projection["_id"] = 0;
+	projection["username"] = 1;
+	projection["password"] = 0;
+	projection["stats"] = 0;
+
+	QJsonObject responseObj = findOne("players", filter, projection);
+
+	if (responseObj.isEmpty())
+	{
+		return false;
+	}
+	return true;
+}
+
+QJsonDocument DatabaseClient::getPlayerRanking()
+{
+	QJsonObject filter;
+
+	QJsonObject projection;
+	projection["password"] = 0;
+	projection["_id"] = 0;
+
+	QJsonObject sort;
+	sort["stats.points"] = -1;
+
+	int limit = 5;
+
+	QJsonDocument responseDoc = find("players", filter, projection, sort, limit);
+
+	return responseDoc;
+}
+
+bool DatabaseClient::createPlayer(const QJsonDocument& player)
+{
+	return insertOne("players", player.object());
+}
+
+bool DatabaseClient::addPlayerToQueue(const QJsonObject& player)
+{
+	return insertOne("queue", player);
+}
+
+bool DatabaseClient::removePlayerFromQueue(const QJsonObject& player)
+{
+	return deleteOne("queue", player);
+}
+
+bool DatabaseClient::removePlayerFromQueue(const QString& playerId)
+{
+	QJsonObject query;
+	query["connId"] = playerId;
+	return deleteOne("queue", query);
+}
+
+QJsonDocument DatabaseClient::getPlayersInQueue()
+{
+	QJsonObject filter;
+	QJsonObject projection;
+	QJsonObject sort;
+	int limit = 100;
+	return find("queue", filter, projection, sort, limit);
+}
+
+int DatabaseClient::countPlayersInQueue()
+{
+	QJsonObject filter;
+
+	return countDocuments("queue", filter);
+}
+
+bool DatabaseClient::addGame(const QJsonObject& game)
+{
+	return insertOne("game_sessions", game);
+}
+
+bool DatabaseClient::updateGame(const QString& uuid, const QJsonObject& data)
+{
+	return updateOneById("game_sessions", uuid, data);
+}
+
+QJsonObject DatabaseClient::getGame(const QString& uuid)
+{
+	QJsonObject projection, filter;
+	filter["_id"] = QJsonObject{ {"oid", uuid} };
+
+	return findOneById("game_sessions", uuid, projection);
+}
+
+bool DatabaseClient::deleteGame(const QString& uuid)
+{
+	QJsonObject filter;
+	filter["_id"] = QJsonObject{ {"oid", uuid} };
+
+	return deleteOne("game_sessions", filter);
+}
+
+QJsonObject DatabaseClient::findOne(const QString& collName, const QJsonObject& filter, const QJsonObject& projection)
 {
 	auto bsonFilter = qJsonObjToBson(filter);
 	auto bsonProjection = qJsonObjToBson(projection);
@@ -85,7 +186,28 @@ QJsonObject DatabaseClient::find_one(const QString& collName, const QJsonObject&
 	return responseJsonObj;
 }
 
-QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort)
+QJsonObject DatabaseClient::findOneById(const QString& collName, const QString& uuid, const QJsonObject& projection)
+{
+	bsoncxx::document::value query = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid(uuid.toStdString())));
+
+	auto bsonProjection = qJsonObjToBson(projection);
+
+	mongocxx::options::find opts;
+	opts.projection(bsonProjection.view());
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.find_one(query.view(), opts);
+
+	QJsonObject responseJsonObj;
+
+	if (result)
+	{
+		responseJsonObj = bsonToQJsonObj(result->view());
+	}
+	return responseJsonObj;
+}
+
+QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& filter, const QJsonObject& projection, const QJsonObject& sort, const int& limit)
 {
 	auto bsonFilter = qJsonObjToBson(filter);
 	auto bsonProjection = qJsonObjToBson(projection);
@@ -94,6 +216,11 @@ QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& f
 	mongocxx::options::find opts;
 	opts.sort(bsonSort.view());
 	opts.projection(bsonProjection.view());
+
+	if (limit != 0)
+	{
+		opts.limit(limit);
+	}
 
 	auto collection = (*_db)[collName.toStdString()];
 	auto result = collection.find(bsonFilter.view(), opts);
@@ -111,7 +238,7 @@ QJsonDocument DatabaseClient::find(const QString& collName, const QJsonObject& f
 	return jsonDoc;
 }
 
-bool DatabaseClient::insert_one(const QString& collName, const QJsonObject& data)
+bool DatabaseClient::insertOne(const QString& collName, const QJsonObject& data)
 {
 	auto bsonData = qJsonObjToBson(data);
 
@@ -125,7 +252,7 @@ bool DatabaseClient::insert_one(const QString& collName, const QJsonObject& data
 	return false;
 }
 
-bool DatabaseClient::update_one(const QString& collName, const QJsonObject& filter, const QJsonObject& data)
+bool DatabaseClient::updateOne(const QString& collName, const QJsonObject& filter, const QJsonObject& data)
 {
 	QJsonObject dataObj;
 	dataObj["$set"] = data;
@@ -143,10 +270,28 @@ bool DatabaseClient::update_one(const QString& collName, const QJsonObject& filt
 	return false;
 }
 
-bool DatabaseClient::delete_one(const QString& collName, const QJsonObject& filter)
+bool DatabaseClient::updateOneById(const QString& collName, const QString& uuid, const QJsonObject& data)
+{
+	QJsonObject dataObj;
+	dataObj["$set"] = data;
+
+	auto bsonData = qJsonObjToBson(dataObj);
+	bsoncxx::document::value query = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid(uuid.toStdString())));
+
+	auto collection = (*_db)[collName.toStdString()];
+	auto result = collection.update_one(query.view(), bsonData.view());
+
+	if (result->modified_count() != 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool DatabaseClient::deleteOne(const QString& collName, const QJsonObject& filter)
 {
 	auto bsonFilter = qJsonObjToBson(filter);
-
+	qDebug() << filter;
 	auto collection = (*_db)[collName.toStdString()];
 	auto result = collection.delete_one(bsonFilter.view());
 
@@ -155,6 +300,16 @@ bool DatabaseClient::delete_one(const QString& collName, const QJsonObject& filt
 		return true;
 	}
 	return false;
+}
+
+int DatabaseClient::countDocuments(const QString& collName, const QJsonObject& filter)
+{
+	auto bsonFilter = qJsonObjToBson(filter);
+
+	auto collection = (*_db)[collName.toStdString()];
+	std::int64_t result = collection.count_documents(bsonFilter.view());
+
+	return result;
 }
 
 mongocxx::uri DatabaseClient::getUrl()
